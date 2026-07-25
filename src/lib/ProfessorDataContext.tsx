@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import type { Aula, Aviso, Certificacao, Cliente, Contrato, Feedback, MaterialDidatico, Pagamento, Professor } from './types'
+import type { Aula, Aviso, CanvasColunaId, CanvasQuadro, Certificacao, Cliente, Contrato, Feedback, MaterialDidatico, Pagamento, Professor } from './types'
 import {
-  criarAulasMock, criarAvisosMock, criarCertificacoesMock, criarClientesMock, criarContratosMock,
+  criarAulasMock, criarAvisosMock, criarCanvasQuadrosMock, criarCertificacoesMock, criarClientesMock, criarContratosMock,
   criarFeedbacksMock, criarMateriaisMock, criarPagamentosMock, criarProfessorMock,
 } from './mockData'
 
-const STORAGE_KEY = 'mep:data:v6'
+const STORAGE_KEY = 'mep:data:v7'
 
 interface StoredData {
   professor: Professor
@@ -17,10 +17,11 @@ interface StoredData {
   feedbacks: Feedback[]
   certificacoes: Certificacao[]
   contratos: Contrato[]
+  canvasQuadros: CanvasQuadro[]
 }
 
 const CHAVES_ESPERADAS: (keyof StoredData)[] = [
-  'professor', 'aulas', 'pagamentos', 'materiais', 'avisos', 'clientes', 'feedbacks', 'certificacoes', 'contratos',
+  'professor', 'aulas', 'pagamentos', 'materiais', 'avisos', 'clientes', 'feedbacks', 'certificacoes', 'contratos', 'canvasQuadros',
 ]
 
 function gerarDadosIniciais(): StoredData {
@@ -34,6 +35,7 @@ function gerarDadosIniciais(): StoredData {
     feedbacks: criarFeedbacksMock(),
     certificacoes: criarCertificacoesMock(),
     contratos: criarContratosMock(),
+    canvasQuadros: criarCanvasQuadrosMock(),
   }
 }
 
@@ -76,6 +78,13 @@ interface NovoMaterialInput {
   arquivoNome?: string
 }
 
+interface NovoCanvasInput {
+  titulo: string
+  descricao: string
+}
+
+const CANVAS_CAPA_CORES = ['#3d8fc9', '#22a578', '#b8770f', '#7c6fe0', '#5291bb', '#2abd8d']
+
 interface ProfessorDataContextValue {
   professor: Professor
   aulas: Aula[]
@@ -86,12 +95,19 @@ interface ProfessorDataContextValue {
   feedbacks: Feedback[]
   certificacoes: Certificacao[]
   contratos: Contrato[]
+  canvasQuadros: CanvasQuadro[]
   updateProfessor: (patch: Partial<Professor>) => void
   confirmarAula: (id: string) => void
   salvarRelatorio: (id: string, dados: RelatorioInput) => void
   adicionarMaterial: (dados: NovoMaterialInput) => void
   marcarAvisoComoLido: (id: string) => void
   assinarContrato: (id: string) => void
+  adicionarCanvasQuadro: (dados: NovoCanvasInput) => string
+  removerCanvasQuadro: (quadroId: string) => void
+  adicionarPostIt: (quadroId: string, colunaId: CanvasColunaId, cor: string) => void
+  atualizarPostIt: (quadroId: string, postItId: string, patch: Partial<CanvasQuadro['postIts'][number]>) => void
+  moverPostIt: (quadroId: string, postItId: string, novaColunaId: CanvasColunaId) => void
+  removerPostIt: (quadroId: string, postItId: string) => void
 }
 
 const ProfessorDataContext = createContext<ProfessorDataContextValue | null>(null)
@@ -175,12 +191,81 @@ export const ProfessorDataProvider: React.FC<{ children: React.ReactNode }> = ({
     }))
   }, [])
 
+  const adicionarCanvasQuadro = useCallback((dados: NovoCanvasInput) => {
+    const id = `canvas-${Date.now()}`
+    setData(prev => ({
+      ...prev,
+      canvasQuadros: [
+        {
+          id,
+          titulo: dados.titulo,
+          descricao: dados.descricao,
+          capaCor: CANVAS_CAPA_CORES[prev.canvasQuadros.length % CANVAS_CAPA_CORES.length],
+          capaVariante: prev.canvasQuadros.length % 6,
+          criadoEm: new Date().toISOString().slice(0, 10),
+          postIts: [],
+        },
+        ...prev.canvasQuadros,
+      ],
+    }))
+    return id
+  }, [])
+
+  const removerCanvasQuadro = useCallback((quadroId: string) => {
+    setData(prev => ({ ...prev, canvasQuadros: prev.canvasQuadros.filter(q => q.id !== quadroId) }))
+  }, [])
+
+  const adicionarPostIt = useCallback((quadroId: string, colunaId: CanvasColunaId, cor: string) => {
+    setData(prev => ({
+      ...prev,
+      canvasQuadros: prev.canvasQuadros.map(q => q.id !== quadroId ? q : {
+        ...q,
+        postIts: [
+          ...q.postIts,
+          { id: `postit-${Date.now()}`, colunaId, texto: '', cor, criadoEm: new Date().toISOString().slice(0, 10) },
+        ],
+      }),
+    }))
+  }, [])
+
+  const atualizarPostIt = useCallback((quadroId: string, postItId: string, patch: Partial<CanvasQuadro['postIts'][number]>) => {
+    setData(prev => ({
+      ...prev,
+      canvasQuadros: prev.canvasQuadros.map(q => q.id !== quadroId ? q : {
+        ...q,
+        postIts: q.postIts.map(p => p.id === postItId ? { ...p, ...patch } : p),
+      }),
+    }))
+  }, [])
+
+  const moverPostIt = useCallback((quadroId: string, postItId: string, novaColunaId: CanvasColunaId) => {
+    setData(prev => ({
+      ...prev,
+      canvasQuadros: prev.canvasQuadros.map(q => q.id !== quadroId ? q : {
+        ...q,
+        postIts: q.postIts.map(p => p.id === postItId ? { ...p, colunaId: novaColunaId } : p),
+      }),
+    }))
+  }, [])
+
+  const removerPostIt = useCallback((quadroId: string, postItId: string) => {
+    setData(prev => ({
+      ...prev,
+      canvasQuadros: prev.canvasQuadros.map(q => q.id !== quadroId ? q : {
+        ...q,
+        postIts: q.postIts.filter(p => p.id !== postItId),
+      }),
+    }))
+  }, [])
+
   return (
     <ProfessorDataContext.Provider
       value={{
         professor: data.professor, aulas: data.aulas, pagamentos: data.pagamentos, materiais: data.materiais, avisos: data.avisos,
         clientes: data.clientes, feedbacks: data.feedbacks, certificacoes: data.certificacoes, contratos: data.contratos,
+        canvasQuadros: data.canvasQuadros,
         updateProfessor, confirmarAula, salvarRelatorio, adicionarMaterial, marcarAvisoComoLido, assinarContrato,
+        adicionarCanvasQuadro, removerCanvasQuadro, adicionarPostIt, atualizarPostIt, moverPostIt, removerPostIt,
       }}
     >
       {children}

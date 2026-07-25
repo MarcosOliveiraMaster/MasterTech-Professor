@@ -14,6 +14,8 @@ import { AvisosTab } from './features/avisos/AvisosTab'
 import { FichasClienteTab } from './features/fichas-cliente/FichasClienteTab'
 import { ContratosTab } from './features/contratos/ContratosTab'
 import { RecursosTab } from './features/recursos/RecursosTab'
+import { CanvasTab } from './features/canvas/CanvasTab'
+import { CanvasQuadroPage } from './features/canvas/CanvasQuadroPage'
 import { MinhaAreaTab } from './features/minha-area/MinhaAreaTab'
 import { CertificacoesTab } from './features/certificacoes/CertificacoesTab'
 import { PerfilTab } from './features/perfil/PerfilTab'
@@ -44,6 +46,8 @@ function App() {
                 <Route path="/painel/fichas-cliente" element={<FichasClienteTab />} />
                 <Route path="/painel/contratos" element={<ContratosTab />} />
                 <Route path="/painel/recursos" element={<RecursosTab />} />
+                <Route path="/painel/canvas" element={<CanvasTab />} />
+                <Route path="/painel/canvas/:id" element={<CanvasQuadroPage />} />
                 <Route path="/painel/perfil" element={<PerfilTab />} />
                 <Route path="/painel/minha-area" element={<MinhaAreaTab />} />
                 <Route path="/painel/certificacoes" element={<CertificacoesTab />} />

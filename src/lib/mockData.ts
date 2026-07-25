@@ -1,4 +1,4 @@
-import type { Aula, Aviso, Certificacao, Cliente, Contrato, Feedback, MaterialCliente, MaterialDidatico, Pagamento, Professor } from './types'
+import type { Aula, Aviso, CanvasQuadro, Certificacao, Cliente, Contrato, Feedback, MaterialCliente, MaterialDidatico, Pagamento, Professor } from './types'
 import { addDays, toISO } from './dateUtils'
 import { MESES } from './constants'
 
@@ -389,4 +389,32 @@ export function criarPagamentosMock(): Pagamento[] {
   }
 
   return pagamentos
+}
+
+export function criarCanvasQuadrosMock(): CanvasQuadro[] {
+  const hoje = new Date()
+  return [
+    {
+      id: 'canvas-1',
+      titulo: 'Aula de Geografia',
+      descricao: 'Aula para aluno Bernardo, será sobre geografia.',
+      capaCor: CAPA_CORES[0],
+      capaVariante: 0,
+      criadoEm: toISO(addDays(hoje, -12)),
+      postIts: [
+        { id: 'postit-1', colunaId: 'assunto-estudado', texto: 'Relevo, clima e vegetação do Brasil.', cor: '#b2f2bb', criadoEm: toISO(addDays(hoje, -12)) },
+        { id: 'postit-2', colunaId: 'duracao-aula', texto: '1h30, com intervalo de 10min.', cor: '#a5d8ff', criadoEm: toISO(addDays(hoje, -12)) },
+        { id: 'postit-3', colunaId: 'tipo-aluno', texto: 'Bernardo aprende melhor com mapas e recursos visuais.', cor: '#fff59d', criadoEm: toISO(addDays(hoje, -12)) },
+      ],
+    },
+    {
+      id: 'canvas-2',
+      titulo: 'Aula de Matemática',
+      descricao: 'Aula para aluna Sofia, será sobre frações e números racionais.',
+      capaCor: CAPA_CORES[4],
+      capaVariante: 3,
+      criadoEm: toISO(addDays(hoje, -5)),
+      postIts: [],
+    },
+  ]
 }
