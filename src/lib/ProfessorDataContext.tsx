@@ -1,0 +1,195 @@
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import type { Aula, Aviso, Certificacao, Cliente, Contrato, Feedback, MaterialDidatico, Pagamento, Professor } from './types'
+import {
+  criarAulasMock, criarAvisosMock, criarCertificacoesMock, criarClientesMock, criarContratosMock,
+  criarFeedbacksMock, criarMateriaisMock, criarPagamentosMock, criarProfessorMock,
+} from './mockData'
+
+const STORAGE_KEY = 'mep:data:v5'
+
+interface StoredData {
+  professor: Professor
+  aulas: Aula[]
+  pagamentos: Pagamento[]
+  materiais: MaterialDidatico[]
+  avisos: Aviso[]
+  clientes: Cliente[]
+  feedbacks: Feedback[]
+  certificacoes: Certificacao[]
+  contratos: Contrato[]
+}
+
+const CHAVES_ESPERADAS: (keyof StoredData)[] = [
+  'professor', 'aulas', 'pagamentos', 'materiais', 'avisos', 'clientes', 'feedbacks', 'certificacoes', 'contratos',
+]
+
+function gerarDadosIniciais(): StoredData {
+  return {
+    professor: criarProfessorMock(),
+    aulas: criarAulasMock(),
+    pagamentos: criarPagamentosMock(),
+    materiais: criarMateriaisMock(),
+    avisos: criarAvisosMock(),
+    clientes: criarClientesMock(),
+    feedbacks: criarFeedbacksMock(),
+    certificacoes: criarCertificacoesMock(),
+    contratos: criarContratosMock(),
+  }
+}
+
+function loadInitial(): StoredData {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as Partial<StoredData>
+      if (CHAVES_ESPERADAS.every(chave => parsed[chave] !== undefined)) {
+        // Mescla com os defaults atuais para preencher campos novos adicionados
+        // ao Professor desde a última vez que este navegador salvou dados —
+        // evita que uma entidade salva "antiga" fique sem propriedades novas.
+        return { ...gerarDadosIniciais(), ...parsed, professor: { ...criarProfessorMock(), ...parsed.professor } }
+      }
+    } catch {
+      // segue para gerar dados novos
+    }
+  }
+  return gerarDadosIniciais()
+}
+
+interface RelatorioInput {
+  descricao: string
+  conteudosEstudados: string
+  comportamento: string
+  recomendacoes: string
+  ferramentasUtilizadas: string[]
+  ocorrencias: string
+  fotoAula?: string
+  notaAula: number
+  anexoLinks: string[]
+  anexoArquivos: string[]
+}
+
+interface NovoMaterialInput {
+  titulo: string
+  descricao: string
+  materia: string
+  valor: number
+  arquivoNome?: string
+}
+
+interface ProfessorDataContextValue {
+  professor: Professor
+  aulas: Aula[]
+  pagamentos: Pagamento[]
+  materiais: MaterialDidatico[]
+  avisos: Aviso[]
+  clientes: Cliente[]
+  feedbacks: Feedback[]
+  certificacoes: Certificacao[]
+  contratos: Contrato[]
+  updateProfessor: (patch: Partial<Professor>) => void
+  confirmarAula: (id: string) => void
+  salvarRelatorio: (id: string, dados: RelatorioInput) => void
+  adicionarMaterial: (dados: NovoMaterialInput) => void
+  marcarAvisoComoLido: (id: string) => void
+  assinarContrato: (id: string) => void
+}
+
+const ProfessorDataContext = createContext<ProfessorDataContextValue | null>(null)
+
+export const ProfessorDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [data, setData] = useState<StoredData>(loadInitial)
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  }, [data])
+
+  const updateProfessor = useCallback((patch: Partial<Professor>) => {
+    setData(prev => ({ ...prev, professor: { ...prev.professor, ...patch } }))
+  }, [])
+
+  const confirmarAula = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      aulas: prev.aulas.map(a =>
+        a.id === id ? { ...a, confirmacaoProfessor: true, statusAula: 'Concluída' } : a,
+      ),
+    }))
+  }, [])
+
+  const salvarRelatorio = useCallback((id: string, dados: RelatorioInput) => {
+    setData(prev => ({
+      ...prev,
+      aulas: prev.aulas.map(a =>
+        a.id === id
+          ? {
+              ...a,
+              descricao: dados.descricao,
+              conteudosEstudados: dados.conteudosEstudados,
+              comportamento: dados.comportamento,
+              recomendacoes: dados.recomendacoes,
+              ferramentasUtilizadas: dados.ferramentasUtilizadas,
+              ocorrencias: dados.ocorrencias,
+              fotoAula: dados.fotoAula,
+              notaAula: dados.notaAula,
+              anexoLinks: dados.anexoLinks,
+              anexoArquivos: dados.anexoArquivos,
+              relatorioEnviadoEm: new Date().toISOString(),
+            }
+          : a,
+      ),
+    }))
+  }, [])
+
+  const adicionarMaterial = useCallback((dados: NovoMaterialInput) => {
+    setData(prev => ({
+      ...prev,
+      materiais: [
+        {
+          id: `material-${Date.now()}`,
+          titulo: dados.titulo,
+          descricao: dados.descricao,
+          materia: dados.materia,
+          valor: dados.valor,
+          arquivoNome: dados.arquivoNome,
+          autor: prev.professor.nome,
+          capaCor: ['#3d8fc9', '#22a578', '#b8770f', '#7c6fe0'][prev.materiais.length % 4],
+          capaVariante: prev.materiais.length % 6,
+          criadoEm: new Date().toISOString().slice(0, 10),
+        },
+        ...prev.materiais,
+      ],
+    }))
+  }, [])
+
+  const marcarAvisoComoLido = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      avisos: prev.avisos.map(a => a.id === id ? { ...a, lido: true } : a),
+    }))
+  }, [])
+
+  const assinarContrato = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      contratos: prev.contratos.map(c => c.id === id ? { ...c, dataAssinatura: new Date().toISOString().slice(0, 10) } : c),
+    }))
+  }, [])
+
+  return (
+    <ProfessorDataContext.Provider
+      value={{
+        professor: data.professor, aulas: data.aulas, pagamentos: data.pagamentos, materiais: data.materiais, avisos: data.avisos,
+        clientes: data.clientes, feedbacks: data.feedbacks, certificacoes: data.certificacoes, contratos: data.contratos,
+        updateProfessor, confirmarAula, salvarRelatorio, adicionarMaterial, marcarAvisoComoLido, assinarContrato,
+      }}
+    >
+      {children}
+    </ProfessorDataContext.Provider>
+  )
+}
+
+export function useProfessorData(): ProfessorDataContextValue {
+  const ctx = useContext(ProfessorDataContext)
+  if (!ctx) throw new Error('useProfessorData deve ser usado dentro de <ProfessorDataProvider>')
+  return ctx
+}
