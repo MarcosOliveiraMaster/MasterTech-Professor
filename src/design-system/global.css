@@ -182,6 +182,10 @@
   --c-notif-error-border: rgba(239, 68, 68, 0.35);
   --c-notif-error-icon: #f87171;
 
+  /* Modal (fundo sólido, sem transparência — para diferenciar do glass usado nos cards) */
+  --c-modal-bg: #111a3d;
+  --c-modal-header-bg: #0c143b;
+
   /* Typography */
   --font-heading: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -313,6 +317,9 @@
   --c-notif-info-bg: rgba(82, 145, 187, 0.10);
   --c-notif-info-border: rgba(82, 145, 187, 0.25);
   --gradient-shimmer: linear-gradient(90deg, transparent, rgba(82, 145, 187, 0.06), transparent);
+
+  --c-modal-bg: #ffffff;
+  --c-modal-header-bg: #f6f6f8;
 }
 
 /* ---------- Classico Mode Overrides ---------- */

@@ -34,7 +34,6 @@ export const Modal: React.FC<ModalProps> = ({ title, onClose, children, footer, 
       }}
     >
       <div
-        className="glass-lg"
         style={{
           width: '100%',
           maxWidth: fullscreen ? '100%' : resolvedMaxWidth,
@@ -42,12 +41,16 @@ export const Modal: React.FC<ModalProps> = ({ title, onClose, children, footer, 
           maxHeight: fullscreen ? '100%' : '85vh',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden', animation: 'fade-scale-in 200ms ease-out',
+          background: 'var(--c-modal-bg)',
+          border: '1px solid var(--c-border-lg)',
+          borderRadius: fullscreen ? 0 : 'var(--radius-lg)',
+          boxShadow: 'var(--c-shadow-lg)',
         }}
       >
         <div style={{ height: '4px', background: 'var(--gradient-accent)', flexShrink: 0 }} />
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 20px', borderBottom: '1px solid var(--c-border)',
+          padding: '16px 20px', borderBottom: '1px solid var(--c-border)', background: 'var(--c-modal-header-bg)',
         }}>
           <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 'var(--font-size-md)', fontWeight: 700, color: 'var(--c-text-1)' }}>{title}</h3>
           <button
@@ -63,11 +66,11 @@ export const Modal: React.FC<ModalProps> = ({ title, onClose, children, footer, 
             <FiX size={18} />
           </button>
         </div>
-        <div style={{ padding: '20px', overflowY: 'auto', color: 'var(--c-text-1)' }}>{children}</div>
+        <div style={{ padding: '20px', overflowY: 'auto', color: 'var(--c-text-1)', background: 'var(--c-modal-bg)' }}>{children}</div>
         {footer && (
           <div style={{
             display: 'flex', justifyContent: 'flex-end', gap: '10px',
-            padding: '14px 20px', borderTop: '1px solid var(--c-border)',
+            padding: '14px 20px', borderTop: '1px solid var(--c-border)', background: 'var(--c-modal-header-bg)',
           }}>
             {footer}
           </div>

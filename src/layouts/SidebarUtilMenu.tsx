@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { FiDownload, FiHeadphones, FiKey, FiMessageCircle } from 'react-icons/fi'
 import { AlterarSenhaModal } from '../components/AlterarSenhaModal'
 import { FeedbackModal } from '../components/FeedbackModal'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { WHATSAPP_SUPORTE, MANUAL_PROFESSOR_URL } from '../lib/constants'
 
 interface SidebarUtilMenuProps {
@@ -23,6 +24,8 @@ export const SidebarUtilMenu: React.FC<SidebarUtilMenuProps> = ({ collapsed = fa
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <ThemeToggle collapsed={collapsed} />
+        <div style={{ height: '1px', background: 'var(--c-border)', margin: '4px 0' }} />
         {itens.map(item => (
           <button
             key={item.label}

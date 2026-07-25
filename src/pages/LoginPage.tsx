@@ -1,14 +1,17 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FiMoon, FiSun } from 'react-icons/fi'
 import { GlassCard } from '../components/GlassCard'
 import { Input } from '../components/Input'
 import { Button } from '../components/Button'
 import { Logo } from '../components/Logo'
 import { useAuth } from '../lib/AuthContext'
+import { useTheme } from '../lib/ThemeContext'
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -38,7 +41,22 @@ export const LoginPage: React.FC = () => {
       justifyContent: 'center',
       background: 'var(--gradient-hero)',
       padding: '20px',
+      position: 'relative',
     }}>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        title={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+        aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+        style={{
+          position: 'absolute', top: '20px', right: '20px', width: '38px', height: '38px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-full)',
+          border: '1px solid var(--c-border)', background: 'var(--c-glass-bg-sm)', color: 'var(--c-text-2)', cursor: 'pointer',
+        }}
+      >
+        {theme === 'dark' ? <FiSun size={16} /> : <FiMoon size={16} />}
+      </button>
+
       <GlassCard variant="lg" style={{ width: '100%', maxWidth: '420px', animation: 'slide-in-up 400ms var(--ease-spring, ease)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>
           <div style={{ animation: 'logo-reveal 500ms ease forwards', opacity: 0 }}>
