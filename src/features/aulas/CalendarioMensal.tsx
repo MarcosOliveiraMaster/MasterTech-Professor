@@ -3,6 +3,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import type { Aula } from '../../lib/types'
 import { MESES } from '../../lib/constants'
 import { toISO } from '../../lib/dateUtils'
+import { useIsMobile } from '../../lib/useMediaQuery'
 import { isAulaCinza } from './statusInfo'
 
 interface CalendarioMensalProps {
@@ -17,7 +18,11 @@ function corBarra(aula: Aula): string {
   return 'var(--mint-400)'
 }
 
+const DIAS_SEMANA_LONGO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const DIAS_SEMANA_CURTO = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+
 export const CalendarioMensal: React.FC<CalendarioMensalProps> = ({ aulas, onDiaClick, onAulaClick }) => {
+  const isMobile = useIsMobile()
   const hoje = new Date()
   const [ano, setAno] = useState(hoje.getFullYear())
   const [mes, setMes] = useState(hoje.getMonth())
@@ -52,21 +57,29 @@ export const CalendarioMensal: React.FC<CalendarioMensalProps> = ({ aulas, onDia
   ]
   while (celulas.length % 7 !== 0) celulas.push(null)
 
+  const maxChips = isMobile ? 4 : 3
+
   return (
-    <div className="glass" style={{ padding: '18px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <button type="button" onClick={() => mudarMes(-1)} style={navBtnStyle}><FiChevronLeft size={18} /></button>
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 'var(--font-size-md)', color: 'var(--c-text-1)', textTransform: 'capitalize' }}>
+    <div className="glass" style={{ padding: isMobile ? '12px 10px' : '18px', overflow: 'hidden', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '10px' : '16px', gap: '8px' }}>
+        <button type="button" onClick={() => mudarMes(-1)} style={{ ...navBtnStyle, flexShrink: 0 }}><FiChevronLeft size={18} /></button>
+        <span style={{
+          fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: isMobile ? '13px' : 'var(--font-size-md)',
+          color: 'var(--c-text-1)', textTransform: 'capitalize', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
           {MESES[mes]} de {ano}
         </span>
-        <button type="button" onClick={() => mudarMes(1)} style={navBtnStyle}><FiChevronRight size={18} /></button>
+        <button type="button" onClick={() => mudarMes(1)} style={{ ...navBtnStyle, flexShrink: 0 }}><FiChevronRight size={18} /></button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', fontSize: '11px', color: 'var(--c-text-3)', textAlign: 'center', marginBottom: '6px' }}>
-        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => <span key={d}>{d}</span>)}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: isMobile ? '3px' : '6px',
+        fontSize: isMobile ? '10px' : '11px', color: 'var(--c-text-3)', textAlign: 'center', marginBottom: '6px',
+      }}>
+        {(isMobile ? DIAS_SEMANA_CURTO : DIAS_SEMANA_LONGO).map((d, i) => <span key={`${d}-${i}`}>{d}</span>)}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: isMobile ? '3px' : '6px' }}>
         {celulas.map((dia, i) => {
           if (dia === null) return <div key={`vazio-${i}`} />
           const iso = toISO(new Date(ano, mes, dia))
@@ -77,31 +90,55 @@ export const CalendarioMensal: React.FC<CalendarioMensalProps> = ({ aulas, onDia
               key={iso}
               onClick={() => aulasDoDia.length > 0 && onDiaClick(iso, aulasDoDia)}
               style={{
-                minHeight: '68px', borderRadius: 'var(--radius-sm)', padding: '6px',
+                minHeight: isMobile ? '48px' : '68px', minWidth: 0, borderRadius: 'var(--radius-sm)', padding: isMobile ? '4px 3px' : '6px',
                 border: ehHoje ? '1.5px solid var(--c-border-mint)' : '1px solid var(--c-border-sm)',
                 background: ehHoje ? 'var(--c-glass-bg-mint)' : 'var(--c-glass-bg-sm)',
                 cursor: aulasDoDia.length > 0 ? 'pointer' : 'default',
-                display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start', textAlign: 'left',
+                display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start', textAlign: 'left', overflow: 'hidden', boxSizing: 'border-box',
               }}
             >
-              <span style={{ fontSize: '12px', fontWeight: ehHoje ? 700 : 500, color: ehHoje ? 'var(--c-text-mint)' : 'var(--c-text-2)' }}>{dia}</span>
-              {aulasDoDia.slice(0, 3).map(aula => (
-                <button
-                  key={aula.id}
-                  type="button"
-                  onClick={e => { e.stopPropagation(); onAulaClick(aula) }}
-                  title="Ver detalhes da aula"
-                  style={{
-                    fontSize: '10px', width: '100%', padding: '2px 5px', borderRadius: '4px', border: 'none',
-                    background: corBarra(aula), color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    textAlign: 'left', cursor: 'pointer',
-                  }}
-                >
-                  {aula.materia}
-                </button>
-              ))}
-              {aulasDoDia.length > 3 && (
-                <span style={{ fontSize: '10px', color: 'var(--c-text-3)' }}>+{aulasDoDia.length - 3}</span>
+              <span style={{ fontSize: isMobile ? '10px' : '12px', fontWeight: ehHoje ? 700 : 500, color: ehHoje ? 'var(--c-text-mint)' : 'var(--c-text-2)' }}>{dia}</span>
+
+              {isMobile ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', width: '100%' }}>
+                  {aulasDoDia.slice(0, maxChips).map(aula => (
+                    <button
+                      key={aula.id}
+                      type="button"
+                      onClick={e => { e.stopPropagation(); onAulaClick(aula) }}
+                      title={aula.materia}
+                      aria-label={aula.materia}
+                      style={{
+                        width: '7px', height: '7px', minWidth: '7px', padding: 0, borderRadius: '50%', border: 'none',
+                        background: corBarra(aula), cursor: 'pointer',
+                      }}
+                    />
+                  ))}
+                  {aulasDoDia.length > maxChips && (
+                    <span style={{ fontSize: '8px', color: 'var(--c-text-3)', lineHeight: '7px' }}>+{aulasDoDia.length - maxChips}</span>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {aulasDoDia.slice(0, maxChips).map(aula => (
+                    <button
+                      key={aula.id}
+                      type="button"
+                      onClick={e => { e.stopPropagation(); onAulaClick(aula) }}
+                      title="Ver detalhes da aula"
+                      style={{
+                        fontSize: '10px', width: '100%', padding: '2px 5px', borderRadius: '4px', border: 'none',
+                        background: corBarra(aula), color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box',
+                      }}
+                    >
+                      {aula.materia}
+                    </button>
+                  ))}
+                  {aulasDoDia.length > maxChips && (
+                    <span style={{ fontSize: '10px', color: 'var(--c-text-3)' }}>+{aulasDoDia.length - maxChips}</span>
+                  )}
+                </>
               )}
             </div>
           )

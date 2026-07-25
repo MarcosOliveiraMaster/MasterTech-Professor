@@ -5,7 +5,7 @@ import {
   criarFeedbacksMock, criarMateriaisMock, criarPagamentosMock, criarProfessorMock,
 } from './mockData'
 
-const STORAGE_KEY = 'mep:data:v5'
+const STORAGE_KEY = 'mep:data:v6'
 
 interface StoredData {
   professor: Professor

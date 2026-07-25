@@ -150,7 +150,7 @@ export function criarAulasMock(): Aula[] {
     const ano = anoMes.getFullYear()
     const mes = anoMes.getMonth()
     const diasNoMes = new Date(ano, mes + 1, 0).getDate()
-    const qtdAulas = 6 + (Math.abs(mesOffset) % 4) // 6 a 9 aulas/mês
+    const qtdAulas = 12 + (Math.abs(mesOffset) % 6) // 12 a 17 aulas/mês
 
     for (let i = 0; i < qtdAulas; i++) {
       const dia = Math.min(diasNoMes, 2 + ((i * 5 + Math.abs(mesOffset) * 3) % (diasNoMes - 2)))
