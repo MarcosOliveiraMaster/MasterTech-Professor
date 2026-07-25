@@ -170,3 +170,35 @@ export interface Pagamento {
   descricao: string
   valor: number
 }
+
+export type CanvasColunaId =
+  | 'duracao-aula'
+  | 'materiais-estudo'
+  | 'assunto-estudado'
+  | 'competencias'
+  | 'metodos-avaliacao'
+  | 'dificuldades-encontradas'
+  | 'tipo-aluno'
+  | 'estrategias-pedagogicas'
+  | 'tdics'
+
+export interface CanvasPostIt {
+  id: string
+  colunaId: CanvasColunaId
+  texto: string
+  cor: string
+  imagemUrl?: string
+  link?: string
+  documentoNome?: string
+  criadoEm: string
+}
+
+export interface CanvasQuadro {
+  id: string
+  titulo: string
+  descricao: string
+  capaCor: string
+  capaVariante: number
+  criadoEm: string
+  postIts: CanvasPostIt[]
+}
